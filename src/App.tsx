@@ -29,7 +29,8 @@ import {
   HelpCircle,
   Activity,
   Clipboard,
-  Database
+  Database,
+  Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -40,6 +41,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSchemaMissing, setIsSchemaMissing] = useState(false);
   const [showSqlCopyPanel, setShowSqlCopyPanel] = useState(false);
+  const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
 
   // Filters & Tabs Navigation
   const [activeTab, setActiveTab] = useState<'versions' | 'feedback' | 'guide'>('versions');
@@ -55,6 +57,7 @@ export default function App() {
 
   // Toast Notifications System
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'warning' | 'info' } | null>(null);
+  const [showAiDialog, setShowAiDialog] = useState(true);
 
   const showToast = (text: string, type: 'success' | 'warning' | 'info' = 'success') => {
     setToastMessage({ text, type });
@@ -141,6 +144,7 @@ export default function App() {
 
       setFeedback(prev => [newFeedbackItem, ...prev]);
       setFormContent('');
+      setIsFeedbackDialogOpen(false);
       showToast('Mensagem enviada! Seu feedback está salvo com segurança no banco de dados.', 'success');
     } catch (err) {
       console.error('Failed to publish feedback on Supabase:', err);
@@ -194,9 +198,9 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Styled Top Header with Navigation Bar integration */}
+      {/* Styled Top Header */}
       <header className="border-b border-zinc-850 bg-[#16161A]/95 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 flex flex-col md:flex-row items-center justify-between gap-4 py-3 md:py-0">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-4 py-3 md:py-0">
           
           {/* Brand Logo & Name */}
           <div className="flex items-center gap-3">
@@ -216,93 +220,21 @@ export default function App() {
             </div>
           </div>
 
-          {/* Navigation Bar integration for tab routing */}
-          <nav className="flex items-center bg-zinc-900/80 p-1 rounded-xl border border-zinc-800/60 w-full md:w-auto scrollbar-none overflow-x-auto self-stretch md:self-auto">
-            <button
-              onClick={() => setActiveTab('versions')}
-              id="nav-btn-versions"
-              className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition duration-200 cursor-pointer ${
-                activeTab === 'versions'
-                  ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800/30'
-              }`}
-            >
-              <Cpu className="w-3.5 h-3.5" />
-              Versões de Debug
-            </button>
-
-            <button
-              onClick={() => setActiveTab('feedback')}
-              id="nav-btn-feedback"
-              className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition duration-200 cursor-pointer ${
-                activeTab === 'feedback'
-                  ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800/30'
-              }`}
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-              Sugestões e Feedback
-              {feedback.length > 0 && (
-                <span className="bg-springfield-blue text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">
-                  {feedback.length}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveTab('guide')}
-              id="nav-btn-guide"
-              className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition duration-200 cursor-pointer ${
-                activeTab === 'guide'
-                  ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800/30'
-              }`}
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              Guia MT Manager
-            </button>
-          </nav>
+          {/* Botão de Informações da IA */}
+          <button
+            onClick={() => setShowAiDialog(true)}
+            className="px-3 py-2 sm:px-4 sm:py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-300 hover:text-white hover:border-zinc-700 transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-springfield-yellow animate-pulse shrink-0" />
+            <span className="hidden sm:inline">Sobre o Port IA</span>
+            <span className="sm:hidden">Sobre IA</span>
+          </button>
 
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
-        
-        {/* Banner de Aviso Crítico consolidado com a descrição do projeto por IA (Não esperar grandes coisas) */}
-        <section className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 relative overflow-hidden shadow-xl animate-fade-in">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-springfield-blue/5 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="flex flex-col lg:flex-row items-start gap-5 relative z-10">
-            <div className="p-3 bg-springfield-yellow/15 rounded-xl border border-springfield-yellow/30 shrink-0 self-start">
-              <AlertTriangle className="w-7 h-7 text-springfield-yellow" />
-            </div>
-
-            <div className="space-y-3.5">
-              <div>
-                <h2 className="text-lg font-display font-extrabold text-white tracking-tight flex items-center gap-2">
-                  <span>ATENÇÃO: DESENVOLVIMENTO EXPERIMENTAL ASSISTIDO POR IA</span>
-                </h2>
-                <p className="text-zinc-350 text-xs sm:text-sm leading-relaxed mt-1">
-                  Este port para Android está sendo desenvolvido de forma experimental e reestruturado com o <strong>auxílio de Inteligência Artificial</strong>. Como a IA ajuda a refatorar o Radical Engine clássico a nível de código de forma automatizada, erros imprevisíveis de colisão, crashes inesperados e bugs bizarros fazem parte do processo de depuração diária. <strong className="text-springfield-yellow font-medium">Por favor, esteja ciente de que as modificações estão na fase experimental e não se deve esperar grandes coisas ou estabilidade polida</strong> em comparação com ports profissionais polidos nativos.
-                </p>
-              </div>
-
-              {/* MT Manager Requirement Sub-Banner (Assinar APK) */}
-              <div className="bg-[#1C1405] border border-amber-900/40 rounded-xl p-4 flex gap-3.5 items-start">
-                <Smartphone className="w-4.5 h-4.5 text-springfield-yellow shrink-0 mt-0.5" />
-                <div className="space-y-0.5">
-                  <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider font-mono">
-                    🔑 Requisito de Instalação: Usar o MT Manager para Assinatura
-                  </h4>
-                  <p className="text-zinc-300 text-xs leading-relaxed">
-                    Para instalar as builds de depuração sem conflito de pacotes no Android, <strong>é essencial assinar o APK usando o editor MT MANAGER</strong>. O Android rejeita instalações de APKs gerados que não possuam assinatura criptográfica de teste. Siga o roteamento no passo a passo da nossa guia.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8 pb-32">
 
         {/* Supabase Schema Missing Warning Block */}
         {isSchemaMissing && (
@@ -523,141 +455,69 @@ CREATE POLICY "Allow public update to upvotes" ON public.feedback FOR UPDATE USI
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.15 }}
-              className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start"
+              className="max-w-4xl mx-auto space-y-6"
             >
-              {/* Coluna de Exibição de feed de feedbacks */}
-              <div className="lg:col-span-2 space-y-6">
-                
-                {/* Cabeçalho de filtragem */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#1A1A1E] border border-zinc-850 p-4 rounded-xl">
-                  <div className="flex items-center gap-2 text-xs text-zinc-400 font-medium">
-                    <Filter className="w-3.5 h-3.5" />
-                    <span>Selecione a categoria:</span>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {[
-                      { id: 'all', label: 'Todos' },
-                      { id: 'bug', label: 'Bugs' },
-                      { id: 'suggestion', label: 'Sugestões' },
-                      { id: 'general', label: 'Geral' }
-                    ].map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => setFeedbackFilter(item.id as any)}
-                        className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
-                          feedbackFilter === item.id
-                            ? 'bg-springfield-yellow/15 text-springfield-yellow border border-springfield-yellow/30'
-                            : 'bg-zinc-900 border border-zinc-850 text-zinc-455 hover:text-white'
-                        }`}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
+              {/* Cabeçalho de filtragem e indicação do FAB */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#1A1A1E] border border-zinc-850 p-5 rounded-2xl shadow-md">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-white flex items-center gap-1.5">
+                    <MessageSquare className="w-4 h-4 text-springfield-yellow" />
+                    Fórum de Sugestões e Bugs
+                  </h3>
+                  <p className="text-zinc-500 text-[11px]">
+                    Veja os relatos da comunidade do port ou clique no botão flutuante amarelo no canto inferior para relatar.
+                  </p>
                 </div>
 
-                {/* Grid real preenchido pelo Supabase */}
-                <div className="space-y-4">
-                  {isLoading ? (
-                    <div className="text-center py-20">
-                      <div className="w-9 h-9 border-2 border-dashed border-springfield-blue rounded-full animate-spin mx-auto mb-3" />
-                      <p className="text-zinc-500 text-xs font-mono">Buscando relatos salvos no Supabase...</p>
-                    </div>
-                  ) : filteredFeedback.length > 0 ? (
-                    filteredFeedback.map((f) => (
-                      <FeedbackItem 
-                        key={f.id} 
-                        feedback={f} 
-                        onVote={handleVote} 
-                      />
-                    ))
-                  ) : (
-                    <div className="text-center py-16 bg-[#1A1A1E] border border-zinc-800 rounded-xl">
-                      <MessageSquare className="w-9 h-9 text-zinc-650 mx-auto mb-3" />
-                      <h3 className="text-xs font-semibold text-zinc-400">Nenhum feedback catalogado</h3>
-                      <p className="text-zinc-500 text-[11px] mt-1">Preencha o formulário para inaugurar esta listagem.</p>
-                    </div>
-                  )}
+                <div className="flex flex-wrap items-center gap-1.5 self-start md:self-auto">
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono mr-1.5 hidden sm:inline">Filtrar:</span>
+                  {[
+                    { id: 'all', label: 'Todos' },
+                    { id: 'bug', label: 'Bugs' },
+                    { id: 'suggestion', label: 'Sugestões' },
+                    { id: 'general', label: 'Geral' }
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => setFeedbackFilter(item.id as any)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                        feedbackFilter === item.id
+                          ? 'bg-springfield-yellow text-zinc-950 shadow-sm font-bold'
+                          : 'bg-zinc-900/60 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Coluna 3 - Envio do feedback */}
-              <div className="bg-[#1A1A1E] border border-zinc-850 rounded-xl p-5 shadow-lg space-y-4">
-                <div className="border-b border-zinc-800 pb-3">
-                  <h3 className="font-display font-bold text-white text-sm flex items-center gap-1.5">
-                    <Send className="w-4 h-4 text-springfield-yellow" />
-                    Cadastrar Sugestão ou Relato
-                  </h3>
-                  <p className="text-zinc-500 text-[10px] mt-1">Suas observações serão publicadas e conectadas ao Supabase de forma nativa.</p>
-                </div>
-
-                <form onSubmit={handleFormSubmit} className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-400 block">Nick / Apelidado *</label>
-                    <input
-                      type="text"
-                      placeholder="ex: BartSimpson_99"
-                      value={formNickname}
-                      onChange={(e) => setFormNickname(e.target.value)}
-                      className="w-full bg-[#121214] border border-zinc-800 rounded-xl px-3 py-2 text-xs focus:border-springfield-yellow focus:outline-none text-white placeholder-zinc-700"
-                      maxLength={40}
-                      required
+              {/* Grid real preenchido pelo Supabase */}
+              <div className="space-y-4">
+                {isLoading ? (
+                  <div className="text-center py-20">
+                    <div className="w-9 h-9 border-2 border-dashed border-springfield-yellow rounded-full animate-spin mx-auto mb-3" />
+                    <p className="text-zinc-500 text-xs font-mono">Buscando relatos salvos no Supabase...</p>
+                  </div>
+                ) : filteredFeedback.length > 0 ? (
+                  filteredFeedback.map((f) => (
+                    <FeedbackItem 
+                      key={f.id} 
+                      feedback={f} 
+                      onVote={handleVote} 
                     />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-400 block">Especificidade</label>
-                    <select
-                      value={formType}
-                      onChange={(e) => setFormType(e.target.value as any)}
-                      className="w-full bg-[#121214] border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-300 focus:border-springfield-yellow focus:outline-none"
-                    >
-                      <option value="suggestion">💡 Sugestão de Melhoria</option>
-                      <option value="bug">🐛 Relato de Bug / Crash</option>
-                      <option value="general">💬 Feedback Geral do Port</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-400 block font-mono">Versão correspondente</label>
-                    <select
-                      value={formVersion}
-                      onChange={(e) => setFormVersion(e.target.value)}
-                      className="w-full bg-[#121214] border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-300 focus:border-springfield-yellow focus:outline-none font-mono"
-                    >
-                      <option value="">Nenhuma / Aplicável a todas</option>
-                      {versions.map((v) => (
-                        <option key={v.version_code} value={v.version_code}>
-                          {v.version_code}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-400 block">Mensagem descritiva *</label>
-                    <textarea
-                      placeholder="Descreva o problema encontrado (ex: travou ao mudar texturas) ou a sua sugestão..."
-                      value={formContent}
-                      onChange={(e) => setFormContent(e.target.value)}
-                      className="w-full bg-[#121214] border border-zinc-800 rounded-xl px-3 py-2 text-xs focus:border-springfield-yellow focus:outline-none text-white placeholder-zinc-700 h-24 resize-none leading-relaxed"
-                      maxLength={500}
-                      required
-                    />
-                    <div className="text-right text-[9px] text-zinc-650">
-                      {formContent.length}/500 caracteres
+                  ))
+                ) : (
+                  <div className="text-center py-16 bg-[#1A1A1E] border border-zinc-800 rounded-2xl max-w-xl mx-auto space-y-3">
+                    <MessageSquare className="w-10 h-10 text-zinc-650 mx-auto" />
+                    <div>
+                      <h3 className="text-xs font-semibold text-zinc-350">Nenhum feedback catalogado</h3>
+                      <p className="text-zinc-500 text-[11px] mt-1 max-w-xs mx-auto">
+                        Seja o primeiro a enviar! Clique no botão de mais (<strong className="text-springfield-yellow font-bold">+</strong>) no canto inferior para inaugurar esta listagem.
+                      </p>
                     </div>
                   </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmittingFeedback}
-                    className="w-full bg-springfield-yellow hover:bg-[#ebd541] font-bold text-zinc-950 py-2.5 rounded-xl text-xs transition active:scale-[0.98] cursor-pointer"
-                  >
-                    {isSubmittingFeedback ? 'Gravando no Banco...' : 'Publicar no Supabase'}
-                  </button>
-                </form>
+                )}
               </div>
             </motion.div>
           )}
@@ -767,6 +627,238 @@ CREATE POLICY "Allow public update to upvotes" ON public.feedback FOR UPDATE USI
           </div>
         </div>
       </footer>
+
+      {/* Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-[#16161A]/95 backdrop-blur-md border-t border-zinc-800/80 px-4 py-2 sm:py-3 flex items-center justify-around z-40 shadow-[0_-8px_30px_rgba(0,0,0,0.6)]">
+        <div className="max-w-md w-full mx-auto flex justify-around gap-2 pb-safe">
+          <button
+            onClick={() => setActiveTab('versions')}
+            id="nav-btn-versions"
+            className={`flex-1 py-1.5 sm:py-2.5 rounded-xl text-xs font-semibold flex flex-col items-center justify-center gap-1 transition duration-200 cursor-pointer ${
+              activeTab === 'versions'
+                ? 'bg-springfield-yellow text-zinc-950 font-bold shadow-md'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/40'
+            }`}
+          >
+            <Cpu className="w-4 h-4 shrink-0" />
+            <span className="text-[10px] tracking-tight">Versões</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('feedback')}
+            id="nav-btn-feedback"
+            className={`flex-1 py-1.5 sm:py-2.5 rounded-xl text-xs font-semibold flex flex-col items-center justify-center gap-1 transition duration-200 cursor-pointer relative ${
+              activeTab === 'feedback'
+                ? 'bg-springfield-yellow text-zinc-950 font-bold shadow-md'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/40'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4 shrink-0" />
+            <span className="text-[10px] tracking-tight">Feedback</span>
+            {feedback.length > 0 && (
+              <span className={`absolute top-1.5 right-4 sm:right-7 text-[8px] px-1.5 py-0.2 rounded-full font-bold shadow-sm ${
+                activeTab === 'feedback' ? 'bg-zinc-950 text-white' : 'bg-springfield-blue text-white'
+              }`}>
+                {feedback.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('guide')}
+            id="nav-btn-guide"
+            className={`flex-1 py-1.5 sm:py-2.5 rounded-xl text-xs font-semibold flex flex-col items-center justify-center gap-1 transition duration-200 cursor-pointer ${
+              activeTab === 'guide'
+                ? 'bg-springfield-yellow text-zinc-950 font-bold shadow-md'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/40'
+            }`}
+          >
+            <BookOpen className="w-4 h-4 shrink-0" />
+            <span className="text-[10px] tracking-tight">Guia MT</span>
+          </button>
+        </div>
+      </nav>
+
+      {/* Floating Action Button (FAB) for Feedback */}
+      <AnimatePresence>
+        {activeTab === 'feedback' && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0, y: 30 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0, opacity: 0, y: 30 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setIsFeedbackDialogOpen(true)}
+            className="fixed bottom-20 right-6 sm:bottom-24 sm:right-10 z-40 bg-springfield-yellow hover:bg-[#ebd541] hover:shadow-lg hover:shadow-springfield-yellow/20 text-zinc-950 p-4 rounded-full shadow-2xl flex items-center justify-center cursor-pointer group transition duration-200"
+            title="Enviar Feedback"
+          >
+            <Plus className="w-6 h-6 shrink-0" />
+            <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-[120px] group-hover:ml-2 transition-all duration-300 ease-in-out text-xs font-bold uppercase tracking-wider">
+              Relatar
+            </span>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* Modals & Dialogs */}
+      <AnimatePresence>
+        {/* Feedback Registration Dialog Modal */}
+        {isFeedbackDialogOpen && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.2 }}
+              className="bg-[#1A1A1E] border border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative space-y-4"
+            >
+              <button
+                onClick={() => setIsFeedbackDialogOpen(false)}
+                className="absolute top-4 right-4 text-zinc-550 hover:text-white transition cursor-pointer"
+              >
+                <X className="w-4.5 h-4.5" />
+              </button>
+
+              <div className="border-b border-zinc-800 pb-3">
+                <h3 className="font-display font-extrabold text-white text-sm flex items-center gap-1.5 uppercase">
+                  <Send className="w-4 h-4 text-springfield-yellow animate-pulse" />
+                  Enviar Relato / Sugestão
+                </h3>
+                <p className="text-zinc-500 text-[10px] mt-1">Sua mensagem será transmitida em tempo real diretamente ao banco Supabase.</p>
+              </div>
+
+              <form onSubmit={handleFormSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-400 block pb-0.5">Apelido / Nickname *</label>
+                  <input
+                    type="text"
+                    placeholder="ex: Milhouse_Arcade"
+                    value={formNickname}
+                    onChange={(e) => setFormNickname(e.target.value)}
+                    className="w-full bg-[#121214] border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs focus:ring-1 focus:ring-springfield-yellow/30 focus:border-springfield-yellow focus:outline-none text-white placeholder-zinc-700"
+                    maxLength={40}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-400 block pb-0.5">Tipo de Mensagem</label>
+                  <select
+                    value={formType}
+                    onChange={(e) => setFormType(e.target.value as any)}
+                    className="w-full bg-[#121214] border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-zinc-350 focus:border-springfield-yellow focus:outline-none cursor-pointer"
+                  >
+                    <option value="suggestion">💡 Sugestão de Melhoria</option>
+                    <option value="bug">🐛 Relato de Bug / Bug Virtual</option>
+                    <option value="general">💬 Feedback Geral do Port</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-400 block font-mono pb-0.5">Versão Envolvida</label>
+                  <select
+                    value={formVersion}
+                    onChange={(e) => setFormVersion(e.target.value)}
+                    className="w-full bg-[#121214] border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-zinc-350 focus:border-springfield-yellow focus:outline-none font-mono cursor-pointer"
+                  >
+                    <option value="">Aplicável ao projeto inteiro</option>
+                    {versions.map((v) => (
+                      <option key={v.version_code} value={v.version_code}>
+                        {v.version_code}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-400 block pb-0.5 font-sans">Conteúdo da mensagem *</label>
+                  <textarea
+                    placeholder="Descreva erros de HUD, crashes ou melhorias..."
+                    value={formContent}
+                    onChange={(e) => setFormContent(e.target.value)}
+                    className="w-full bg-[#121214] border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs focus:ring-1 focus:ring-springfield-yellow/30 focus:border-springfield-yellow focus:outline-none text-white placeholder-zinc-700 h-24 resize-none leading-relaxed"
+                    maxLength={500}
+                    required
+                  />
+                  <div className="text-right text-[9px] text-zinc-650 font-mono">
+                    {formContent.length}/500 caracteres
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmittingFeedback}
+                  className="w-full bg-springfield-yellow hover:bg-[#ebd541] font-bold text-zinc-950 py-3 rounded-xl text-xs transition active:scale-[0.98] cursor-pointer shadow-md inline-flex items-center justify-center gap-1.5"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>{isSubmittingFeedback ? 'Gravando no Banco...' : 'Publicar no Supabase'}</span>
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* AI Assistant Info Dialog Modal */}
+        {showAiDialog && (
+          <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.2 }}
+              className="bg-[#1A1A1E] border border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative space-y-4"
+            >
+              <button
+                onClick={() => setShowAiDialog(false)}
+                className="absolute top-4 right-4 text-zinc-550 hover:text-white transition cursor-pointer"
+              >
+                <X className="w-4.5 h-4.5" />
+              </button>
+
+              <div className="flex items-center gap-3 border-b border-zinc-800 pb-3">
+                <div className="w-9 h-9 bg-purple-950/80 rounded-xl flex items-center justify-center border border-purple-500/20">
+                  <Sparkles className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="font-display font-extrabold text-white text-sm tracking-tight uppercase">
+                    Modificações de IA
+                  </h3>
+                  <p className="text-[9px] text-zinc-500 font-mono tracking-wider">DESENVOLVIMENTO EXPERIMENTAL DO PORT</p>
+                </div>
+              </div>
+
+              <div className="space-y-3.5 text-xs inline-block text-zinc-350 leading-relaxed">
+                <p>
+                  Este port de <strong>The Simpsons: Hit & Run</strong> para Android está sendo estruturado e desenvolvido experimentalmente com auxílio de Inteligência Artificial.
+                </p>
+
+                <div className="bg-[#121214] border border-zinc-850 p-3.5 rounded-xl space-y-2.5">
+                  <h4 className="text-white text-[10px] font-bold uppercase tracking-wider font-mono flex items-center gap-1.5 text-springfield-yellow">
+                    <Cpu className="w-3.5 h-3.5" /> Adições feitas com auxílio de IA
+                  </h4>
+                  <ul className="space-y-1.5 list-disc list-inside text-zinc-400 pl-1 text-[11px]">
+                    <li><strong className="text-zinc-300">HUD Adaptado aos Celulares:</strong> Layout do HUD inteligente e controles táteis virtuais mapeados responsivamente.</li>
+                    <li><strong className="text-zinc-300">Portabilidade de C++:</strong> Auxílio na reescrita e conversão de loops e subrotinas legadas do Radical Engine original para Android moderno.</li>
+                  </ul>
+                </div>
+
+                <p className="text-[11px] text-zinc-400 leading-snug bg-amber-950/15 border border-amber-900/30 p-3 rounded-lg">
+                  ⚠️ <strong>Aviso Sincero:</strong> Por se tratar de um projeto puramente de teste e estudo, o port está em estágio experimental inicial. Por favor, não espere o mesmo polimento ou estabilidade de um port nativo profissional oficial.
+                </p>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  onClick={() => setShowAiDialog(false)}
+                  className="bg-springfield-yellow hover:bg-[#ebd541] font-bold text-zinc-950 px-5 py-2.5 rounded-xl text-xs transition active:scale-[0.98] cursor-pointer"
+                >
+                  Entendi, Prosseguir
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
