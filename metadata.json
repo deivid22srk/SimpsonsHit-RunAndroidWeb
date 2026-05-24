@@ -1,0 +1,6 @@
+{
+  "name": "Hit & Run: Port IA Dashboard",
+  "description": "Portal de atualizações, feedbacks e sugestões para o port de Android assistido por IA do clássico The Simpsons: Hit & Run.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
